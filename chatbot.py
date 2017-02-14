@@ -1,5 +1,5 @@
 from keras.models import Sequential
-from keras.layers import Embedding, Dense, LSTM, GRU, RepeatVector, TimeDistributed, Activation, BatchNormalization
+from keras.layers import Embedding, Dense, LSTM, GRU, Bidirectional, RepeatVector, TimeDistributed, Activation, BatchNormalization
 from keras.optimizers import SGD
 from keras.callbacks import LearningRateScheduler, ModelCheckpoint
 import numpy as np
@@ -10,19 +10,22 @@ class Chatbot(object):
         self.vocabulary_size = vocabulary_size
         model = Sequential()
         model.add(Embedding(vocabulary_size, hidden_size, input_length=sequence_length, name="input_embedding"))
-        model.add(LSTM(hidden_size, return_sequences=False, name="encoder_lstm_1"))
+        model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="encoder_lstm_1"))
+        model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="encoder_lstm_2"))
+        model.add(LSTM(hidden_size, return_sequences=False, unroll=True, name="encoder_lstm_3"))
         model.add(RepeatVector(sequence_length, name="repeat_vector"))
-        model.add(LSTM(hidden_size, return_sequences=True, name="decoder_lstm_1"))
-        model.add(TimeDistributed(Dense(vocabulary_size, name="output_dense")))
-        model.add(Activation("softmax", name="output_softmax"))
+        model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="decoder_lstm_1"))
+        model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="decoder_lstm_2"))
+        model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="decoder_lstm_2"))
+        model.add(TimeDistributed(Dense(vocabulary_size, activation="softmax", name="output_dense")))
 
-        
-        model.compile(optimizer=SGD(lr=0.001, momentum=0.9, clipvalue=5.), loss="categorical_crossentropy", metrics=["accuracy"])
+        # SGD(lr=0.0001, momentum=0.9, clipvalue=5.)
+        model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
         self.model = model
     
     def fit_generator(self, generator, samples_per_epoch, nb_epoch=1):
         min_lr = 0.00001
-        lr = 0.001
+        lr = 0.0001
         saturate_epoch = 20
         decay_factor = (min_lr - lr) / float(saturate_epoch)
         def decay_lr(epoch):
@@ -30,7 +33,7 @@ class Chatbot(object):
         
         ls_scheduler = LearningRateScheduler(decay_lr)
         checkpointer = ModelCheckpoint("models/checkpoints/checkpoint.h5", monitor="val_loss")
-        self.model.fit_generator(generator, samples_per_epoch=samples_per_epoch, nb_epoch=nb_epoch, callbacks=[ls_scheduler, checkpointer])
+        self.model.fit_generator(generator, samples_per_epoch=samples_per_epoch, nb_epoch=nb_epoch, callbacks=[checkpointer])
     
     def respond(self, input_sequence, temperature=1.0):
         def sample(probabilities, temperature=1.0):

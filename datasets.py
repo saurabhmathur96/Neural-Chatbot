@@ -100,9 +100,8 @@ class CornellMovieDialogs(object):
 
         s = MATCH_MULTIPLE_SPACES.sub(" ", s)
         # take first line
-        indices = [s.find(punct)+1 for punct in ".?!" if punct in s]
-        index = min(indices) if len(indices) > 0 else len(s)
-        s = s[:index].strip()
+        sents = nltk.sent_tokenize(s)
+        s = sents[0] if len(sents) > 0 else s
         s = " ".join(nltk.word_tokenize(s))
         return s
 
@@ -120,6 +119,6 @@ class CornellMovieDialogs(object):
     
     def data_generator(self):
         while True:
-            with open(self.statements_path, "r") as statements_file, open(self.responses_path, "r") as responses_file:
+            with open(self.responses_path, "r") as statements_file, open(self.statements_path, "r")  as responses_file:
                 for s, r in zip(statements_file, responses_file):
                     yield (s, r)
