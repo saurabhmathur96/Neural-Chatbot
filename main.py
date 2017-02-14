@@ -36,7 +36,7 @@ def gen(dataset, sequence_length, batch_size=32, max_samples=50000):
             yield next(g)
 
 def main():
-    dataset = dataset = CornellMovieDialogs(data_directory="data/", vocabulary_size=35200)
+    dataset = dataset = CornellMovieDialogs(data_directory="data/", vocabulary_size=20000)
     if not os.path.exists("data/cleaned"):
         dataset.make_conversations()
     else:
@@ -49,7 +49,7 @@ def main():
     bot.save("models/chatbot.h5")
 
 def test():
-    dataset = CornellMovieDialogs(data_directory="data/", vocabulary_size=35200)
+    dataset = CornellMovieDialogs(data_directory="data/", vocabulary_size=20000)
     if not os.path.exists("data/cleaned"):
         dataset.make_conversations()
     else:
