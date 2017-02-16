@@ -42,9 +42,9 @@ def main():
     else:
         dataset.load()
 
-    bot = Chatbot(sequence_length=10, hidden_size=256, vocabulary_size=dataset.vocabulary_size)
+    bot = Chatbot(sequence_length=20, hidden_size=256, vocabulary_size=dataset.vocabulary_size)
     # bot.load("models/chatbot.h5")
-    conversation_generator = batch_generator(dataset, bot.sequence_length, batch_size=10) #gen(dataset, bot.sequence_length, batch_size=10) # 
+    conversation_generator = batch_generator(dataset, bot.sequence_length, batch_size=1000) #gen(dataset, bot.sequence_length, batch_size=10) # 
     bot.fit_generator(conversation_generator, samples_per_epoch=10000, nb_epoch=50)
     bot.save("models/chatbot.h5")
 
@@ -55,7 +55,7 @@ def test():
     else:
         dataset.load()
 
-    bot = Chatbot(sequence_length=10, hidden_size=1000, vocabulary_size=dataset.vocabulary_size)
+    bot = Chatbot(sequence_length=20, hidden_size=256, vocabulary_size=dataset.vocabulary_size)
     bot.load("models/checkpoints/checkpoint.h5")
     while True:
         print (">>>", end="")
@@ -75,9 +75,5 @@ def test():
 if __name__ == "__main__":
     # loss: 2.1947 - acc: 0.2345
     # test()
-    # main()
-    dataset = CornellMovieDialogs(data_directory="data/", vocabulary_size=20000)
-    if not os.path.exists("data/cleaned"):
-        dataset.make_conversations()
-    else:
-        dataset.load()
+    main()
+    
