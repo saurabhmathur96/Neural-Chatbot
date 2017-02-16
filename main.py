@@ -75,4 +75,9 @@ def test():
 if __name__ == "__main__":
     # loss: 2.1947 - acc: 0.2345
     # test()
-    main()
+    # main()
+    dataset = CornellMovieDialogs(data_directory="data/", vocabulary_size=20000)
+    if not os.path.exists("data/cleaned"):
+        dataset.make_conversations()
+    else:
+        dataset.load()

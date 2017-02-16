@@ -3,11 +3,13 @@ import os
 import itertools
 from collections import Counter
 from io import open
-import nltk
+import spacy
 import tqdm
 import string
 import re
 
+
+nlp = spacy.load("en")
 
 class CornellMovieDialogs(object):
     def __init__(self, data_directory, vocabulary_size=20000):
@@ -33,7 +35,7 @@ class CornellMovieDialogs(object):
         movie_lines_path = os.path.join(self.data_directory, "movie_lines.txt")
         lines = dict()
         with open(movie_lines_path, "r", encoding="iso-8859-1") as f:
-            for line in f:
+            for line in tqdm.tqdm(f, total=304713):
                 id, _, _, _, text = line.split(" +++$+++ ")
                 lines[id] = self.clean(text.encode("ascii", "ignore"))
         
@@ -48,7 +50,7 @@ class CornellMovieDialogs(object):
                 ids = ids[2:-3].split("', '")
                 conversations += [lines[id] for id in ids]
         
-        tokens = list(itertools.chain.from_iterable(nltk.word_tokenize(line) for line in tqdm.tqdm(conversations, desc="building vocabulary") ))
+        tokens = list(itertools.chain.from_iterable(map(str, nlp(unicode(line))) for line in tqdm.tqdm(conversations, desc="building vocabulary") ))
         
         print ("{0} tokens, {1} unique".format(len(tokens), len(set(tokens))))
         
@@ -90,19 +92,24 @@ class CornellMovieDialogs(object):
 
     def clean(self, s):
         MATCH_MULTIPLE_SPACES = re.compile(r"\s{2,}")
+        MATCH_TAGS = re.compile(r"</?\s?[a-z]\s?>")
 
         s = s.lower().replace("\n", "")
-        
-        for punctuation in string.punctuation:
-            s = s.replace(punctuation, " " + punctuation + " ")
+        s = MATCH_TAGS.sub(" ", s)
+
         for i in range(10):
             s = s.replace(unicode(i), " " + unicode(i) + " ")
 
-        s = MATCH_MULTIPLE_SPACES.sub(" ", s)
+        s = MATCH_MULTIPLE_SPACES.sub(" ", s).strip()
         # take first line
-        sents = nltk.sent_tokenize(s)
-        s = sents[0] if len(sents) > 0 else s
-        s = " ".join(nltk.word_tokenize(s))
+        # sents = nltk.sent_tokenize(s)
+        try:
+            sents = list(each for each in nlp(unicode(s)).sents)
+            s = str(sents[0]).strip() if len(sents) > 0 else s
+            s = " ".join(map(str, nlp(unicode(s))))
+        except IndexError:
+            # print (s)
+            pass
         return s
 
 
