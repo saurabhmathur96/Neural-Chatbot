@@ -67,8 +67,8 @@ class CornellMovieDialogs(object):
         # conversations = [self.encode_sequence(sentence) for sentence in tqdm.tqdm(conversations, desc="encoding sequences")]
         even, odd = conversations[0::2], conversations[1::2]
         
-        statements = even #+ odd 
-        responses = odd #+ even
+        statements = even + odd 
+        responses = odd + even
 
         #
         # Save conversations
@@ -126,6 +126,6 @@ class CornellMovieDialogs(object):
     
     def data_generator(self):
         while True:
-            with open(self.responses_path, "r") as statements_file, open(self.statements_path, "r")  as responses_file:
+            with open(self.statements_path, "r") as statements_file, open(self.responses_path, "r")  as responses_file:
                 for s, r in zip(statements_file, responses_file):
                     yield (s, r)

@@ -11,17 +11,21 @@ class Chatbot(object):
         model = Sequential()
         model.add(Embedding(vocabulary_size, hidden_size, input_length=sequence_length, name="input_embedding"))
         model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="encoder_lstm_1"))
+        model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="encoder_lstm_2"))
+        model.add(LSTM(hidden_size, return_sequences=False, unroll=True, name="encoder_lstm_3"))
         model.add(RepeatVector(sequence_length, name="repeat_vector"))
         model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="decoder_lstm_1"))
+        model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="decoder_lstm_2"))
+        model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="decoder_lstm_3"))
         model.add(TimeDistributed(Dense(vocabulary_size, activation="softmax", name="output_dense")))
 
         # SGD(lr=0.0001, momentum=0.9, clipvalue=5.)
-        model.compile(optimizer=Adagrad(), loss="categorical_crossentropy", metrics=["accuracy"])
+        model.compile(optimizer=Adam(lr=0.001, clipvalue=5.), loss="categorical_crossentropy", metrics=["accuracy"])
         self.model = model
     
     def fit_generator(self, generator, samples_per_epoch, nb_epoch=1):
         min_lr = 0.00001
-        lr = 0.01
+        lr = 0.001
         saturate_epoch = 20
         decay_factor = (min_lr - lr) / float(saturate_epoch)
         def decay_lr(epoch):
