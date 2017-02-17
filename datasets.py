@@ -120,7 +120,7 @@ class CornellMovieDialogs(object):
         # Load vocabulary
 
         with open(self.vocabulary_path, "r") as vocabulary_file:
-            self.vocabulary = vocabulary_file.read().split("\n")
+            self.vocabulary = vocabulary_file.read().strip().split("\n")
 
         self.inverse_vocabulary = dict((word, i) for i, word in enumerate(self.vocabulary))
     

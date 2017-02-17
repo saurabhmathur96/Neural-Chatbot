@@ -1,6 +1,6 @@
 from keras.models import Sequential
 from keras.layers import Embedding, Dense, LSTM, GRU, Bidirectional, RepeatVector, TimeDistributed, Activation, BatchNormalization
-from keras.optimizers import SGD, Adagrad
+from keras.optimizers import SGD, Adam
 from keras.callbacks import LearningRateScheduler, ModelCheckpoint
 import numpy as np
 
@@ -9,7 +9,7 @@ class Chatbot(object):
         self.sequence_length = sequence_length
         self.vocabulary_size = vocabulary_size
         model = Sequential()
-        model.add(Embedding(vocabulary_size, hidden_size, input_length=sequence_length, name="input_embedding"))
+        model.add(Embedding(vocabulary_size, hidden_size, mask_zero=True, input_length=sequence_length, name="input_embedding"))
         model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="encoder_lstm_1"))
         model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="encoder_lstm_2"))
         model.add(LSTM(hidden_size, return_sequences=False, unroll=True, name="encoder_lstm_3"))
@@ -33,7 +33,7 @@ class Chatbot(object):
         
         lr_scheduler = LearningRateScheduler(decay_lr)
         checkpointer = ModelCheckpoint("models/checkpoints/checkpoint.h5", monitor="val_loss")
-        self.model.fit_generator(generator, samples_per_epoch=samples_per_epoch, nb_epoch=nb_epoch, callbacks=[lr_scheduler, checkpointer])
+        self.model.fit_generator(generator, samples_per_epoch=samples_per_epoch, nb_epoch=nb_epoch, callbacks=[checkpointer])
     
     def respond(self, input_sequence, temperature=1.0):
         def sample(probabilities, temperature=1.0):
