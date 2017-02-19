@@ -42,10 +42,10 @@ def main():
     else:
         dataset.load()
 
-    bot = Chatbot(sequence_length=20, hidden_size=256, vocabulary_size=dataset.vocabulary_size)
-    bot.load("models/checkpoints/checkpoint.h5")
-    conversation_generator = batch_generator(dataset, bot.sequence_length, batch_size=200) #gen(dataset, bot.sequence_length, batch_size=10) # 
-    bot.fit_generator(conversation_generator, samples_per_epoch=200000, nb_epoch=50)
+    bot = Chatbot(sequence_length=10, hidden_size=128, vocabulary_size=dataset.vocabulary_size)
+    # bot.load("models/checkpoints/checkpoint.h5")
+    conversation_generator = gen(dataset, bot.sequence_length, batch_size=10, max_samples=5000) #gen(dataset, bot.sequence_length, batch_size=10) # 
+    bot.fit_generator(conversation_generator, samples_per_epoch=10000, nb_epoch=100)
     bot.save("models/chatbot.h5")
 
 def test():
@@ -55,17 +55,18 @@ def test():
     else:
         dataset.load()
 
-    bot = Chatbot(sequence_length=20, hidden_size=256, vocabulary_size=dataset.vocabulary_size)
+    bot = Chatbot(sequence_length=10, hidden_size=128, vocabulary_size=dataset.vocabulary_size)
     bot.load("models/checkpoints/checkpoint.h5")
     while True:
         print (">>>", end="")
         sentence = raw_input()
-        sentence = dataset.clean(sentence)
+        # sentence = dataset.clean(sentence)
         sentence = dataset.encode_sequence(sentence)
         sentence = sequence.pad_sequences([sentence], maxlen=bot.sequence_length)
-        for t in [.7, .8, .9]:
+        print (sentence)
+        for t in [1]:
             response = bot.respond(sentence, temperature=t)
-            print(response)
+            # print(response)
             response = dataset.decode_sequence(response)
             start_index = response.index("START")+1 if "START" in response else 0
             end_index = response.index("END") if "END" in response else len(response)
@@ -74,6 +75,6 @@ def test():
             
 if __name__ == "__main__":
     # loss: 2.1947 - acc: 0.2345
-    # test()
+    test()
     main()
     

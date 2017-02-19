@@ -9,7 +9,7 @@ import string
 import re
 
 
-nlp = spacy.load("en")
+# nlp = spacy.load("en")
 
 class CornellMovieDialogs(object):
     def __init__(self, data_directory, vocabulary_size=20000):

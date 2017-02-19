@@ -10,17 +10,14 @@ class Chatbot(object):
         self.vocabulary_size = vocabulary_size
         model = Sequential()
         model.add(Embedding(vocabulary_size, hidden_size, mask_zero=True, input_length=sequence_length, name="input_embedding"))
-        model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="encoder_lstm_1"))
-        model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="encoder_lstm_2"))
-        model.add(LSTM(hidden_size, return_sequences=False, unroll=True, name="encoder_lstm_3"))
+        model.add(Bidirectional(GRU(hidden_size, return_sequences=False, unroll=True, name="encoder_1")))
         model.add(RepeatVector(sequence_length, name="repeat_vector"))
-        model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="decoder_lstm_1"))
-        model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="decoder_lstm_2"))
-        model.add(LSTM(hidden_size, return_sequences=True, unroll=True, name="decoder_lstm_3"))
+        model.add(GRU(hidden_size, return_sequences=True, unroll=True, name="decoder_1"))
         model.add(TimeDistributed(Dense(vocabulary_size, activation="softmax", name="output_dense")))
 
+
         # SGD(lr=0.0001, momentum=0.9, clipvalue=5.)
-        model.compile(optimizer=Adam(lr=0.001, clipvalue=5.), loss="categorical_crossentropy", metrics=["accuracy"])
+        model.compile(optimizer=Adam(), loss="categorical_crossentropy", metrics=["accuracy"])
         self.model = model
     
     def fit_generator(self, generator, samples_per_epoch, nb_epoch=1):
@@ -46,7 +43,7 @@ class Chatbot(object):
         
         y = self.model.predict(input_sequence)[0]
         y[:, 2] = 0.
-
+        y[:, 0] = 0.
         return [sample(p, temperature) for p in y]
         
 
