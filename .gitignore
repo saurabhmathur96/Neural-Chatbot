@@ -1,6 +1,6 @@
 *.pyc
 models/*.h5
 models/*/*.h5
-data/*.txt
-data/*.pdf
+data/processed/*
+data/raw/*
 data/*/*.txt
