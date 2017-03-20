@@ -1,0 +1,80 @@
+<!doctype html>
+
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Chatbot</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
+</head>
+
+
+<body>
+    <div class="container" style="margin-top: 5vh;">
+        <ul class="list-group" style="height: 80vh;  overflow-y: auto;" id="messages">
+        </ul>
+
+        <div class="input-group" >
+            <input type="text" style="text-align: right" class="form-control" id="user_input" name="user_input" placeholder="Say something" />
+            <span class="input-group-btn"><button class="btn btn-default" id="send_button"><i class="glyphicon glyphicon-send"></i></button></span>
+        </div>
+
+    </div>
+</body>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+    crossorigin="anonymous"></script>
+<script>
+    'use strict';
+    var bot_message = ['<li class="list-group-item" style="text-align: left">',
+    '<img class="media-object img-circle" style="display: inline; margin-right:8px;" src="https://api.adorable.io/avatars/32/neural_net_based_chatbot.png">',
+    'TEXT',
+    '</li>'];
+
+    var user_message = ['<li class="list-group-item" style="text-align: right">',
+    'TEXT',
+    '<img class="media-object img-circle" style="display: inline; margin-left:8px;" src="https://api.adorable.io/avatars/32/human_user.png">',
+    '</li>'];
+
+    var sendMessage = function (e) {
+        if (e.type === 'click' || e.which === 13){
+            var user_input = $('#user_input').val();
+
+            var message = user_message.join('\n').replace('TEXT', user_input);
+            $('#messages').append(message);
+
+            $('#user_input').val('');
+            $('#messages').scrollTop($('ul li').last().position().top + $('ul li').last().height());
+
+            $.ajax('./respond', {
+                type: 'POST',
+                data: { message: user_input },
+                dataType: 'json',
+                success: function(result) {
+                    var text = bot_message.join('\n').replace('TEXT', result.response);
+                    $('#messages').append(text);
+                    $('#messages').scrollTop($('ul li').last().position().top + $('ul li').last().height());
+                }
+            });
+            return false;
+        }
+    };
+
+    $(document).ready(function() {
+        $('#send_button').on('click', sendMessage)
+        $('#user_input').on('keypress', sendMessage);
+
+        $('#user_input').on('keyup blur', function () {
+            if($('#user_input').val().length > 0) {
+                $('#send_button').prop('disabled', false); 
+            } else {
+                $('#send_button').prop('disabled', 'disabled'); 
+            }
+        });
+    });
+</script>
+
+</html>
