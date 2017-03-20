@@ -10,9 +10,9 @@ sys.path.append('src/utils')
 from batch_utils import BatchIterator
 
 if __name__ == '__main__':
-    sequence_length = 12
+    sequence_length = 16
     vocabulary_size = 2000
-    hidden_size = 128
+    hidden_size = 256
     model = seq2seq(sequence_length, vocabulary_size, hidden_size)
 
     data_file = 'data/processed/opus11/filtered_pairs.txt'
@@ -36,7 +36,7 @@ if __name__ == '__main__':
         print ('-' * 80)
         print ('Epoch {0}'.format(epoch))
         print ('-' * 80)
-        bar = tqdm(range(1, n_iter+1), total=n_iter, bar_format=bar_format, ncols=80, ascii=True)
+        bar = tqdm(range(1, n_iter+1), total=n_iter, bar_format=bar_format, ncols=80)
         loss = 0.0
         for i in bar:
             batch = iterator.next_batch()

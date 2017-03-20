@@ -6,15 +6,17 @@ from keras.layers import LSTM, activations, Wrapper
 from keras.layers import Lambda, merge, GRU
 from keras.layers import ELU
 from keras.initializers import Zeros
+from keras.layers.merge import concatenate
 
 class AttentionWrapper(Wrapper):
     def __init__(self, layer, attention_vec, attn_activation='tanh', single_attention_param=False, **kwargs):
         assert isinstance(layer, LSTM) or isinstance(layer, GRU)
+        super(AttentionWrapper, self).__init__(layer, **kwargs)
         self.supports_masking = True
         self.attention_vec = attention_vec
         self.attn_activation = activations.get(attn_activation)
         self.single_attention_param = single_attention_param
-        super(AttentionWrapper, self).__init__(layer, **kwargs)
+        
 
     def build(self, input_shape):
         assert len(input_shape) >= 3
@@ -59,7 +61,7 @@ class AttentionWrapper(Wrapper):
         s = K.sigmoid(K.dot(m, self.U_s) + self.b_s)
 
         if self.single_attention_param:
-            h = h * K.repeat_elements(s, self.layer.output_dim, axis=1)
+            h = h * K.repeat_elements(s, self.layer.units, axis=1)
         else:
             h = h * s
 
@@ -121,7 +123,7 @@ def Encoder(hidden_size, return_sequences=True, bidirectional=False):
         if bidirectional:
             branch_1 = GRU(hidden_size, activation='linear', return_sequences=return_sequences, go_backwards=False)(x)
             branch_2 = GRU(hidden_size, activation='linear', return_sequences=return_sequences, go_backwards=True)(x)
-            x = merge([branch_1, branch_2], mode="concat")
+            x = concatenate([branch_1, branch_2])
             return ELU()(x)
         else:
             x = GRU(hidden_size, activation='relu', return_sequences=return_sequences, go_backwards=False)(x)
@@ -133,7 +135,7 @@ def AttentionDecoder(hidden_size, return_sequences=True, bidirectional=False):
         if bidirectional:
             branch_1 = AttentionWrapper(GRU(hidden_size, activation='linear', return_sequences=return_sequences, go_backwards=False), attention, single_attention_param=True)(x)
             branch_2 = AttentionWrapper(GRU(hidden_size, activation='linear', return_sequences=return_sequences, go_backwards=True), attention, single_attention_param=True)(x)
-            x = merge([branch_1, branch_2], mode="concat")
+            x = concatenate([branch_1, branch_2])
             return ELU()(x)
         else:
             x = AttentionWrapper(GRU(hidden_size, activation='linear', return_sequences=return_sequences, go_backwards=False), attention, single_attention_param=True)(x)

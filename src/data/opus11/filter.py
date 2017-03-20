@@ -26,7 +26,7 @@ if __name__ == '__main__':
     word_counts = freq_dist.most_common(vocabulary_size)
     vocabulary = [word for word, count in word_counts]
 
-    length = 10
+    length = 14
     vocabulary_set = set(vocabulary)
     def remove_unknown(line):
         return ' '.join(word if word in vocabulary_set else UNK for word in line.split())
