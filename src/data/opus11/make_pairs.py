@@ -22,6 +22,7 @@ def all_filenames(root):
 
 if __name__ == '__main__':
     
+    os.makedirs('data/processed/') if not path.exists('data/processed/') else None
     os.makedirs('data/processed/opus11') if not path.exists('data/processed/opus11') else None
 
     pairs_path = 'data/processed/opus11/pairs.txt'
