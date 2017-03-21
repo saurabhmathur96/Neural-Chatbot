@@ -13,7 +13,7 @@ if __name__ == '__main__':
     sequence_length = 16
     vocabulary_size = 2000
     hidden_size = 256
-    model = seq2seq(sequence_length, vocabulary_size, hidden_size)
+    model = seq2seq_attention(sequence_length, vocabulary_size, hidden_size)
 
     data_file = 'data/processed/opus11/filtered_pairs.txt'
     with open(data_file) as handle:
