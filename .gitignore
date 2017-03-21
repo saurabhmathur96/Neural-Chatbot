@@ -4,3 +4,4 @@ models/*/*.h5
 data/processed/*
 data/raw/*
 data/*/*.txt
+venv
