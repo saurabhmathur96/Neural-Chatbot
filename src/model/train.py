@@ -8,25 +8,28 @@ from keras.optimizers import SGD, Adagrad, Adam
 
 sys.path.append('src/utils')
 from batch_utils import BatchIterator
+from config_utils import settings
 
 if __name__ == '__main__':
-    sequence_length = 16
-    vocabulary_size = 2000
-    hidden_size = 256
+    sequence_length = settings.model.sequence_length
+    vocabulary_size = settings.model.vocabulary_size
+    hidden_size = settings.model.hidden_size
+    print ('Creating model with configuration: {0}'.format(settings.model))
     model = seq2seq_attention(sequence_length, vocabulary_size, hidden_size)
 
-    data_file = 'data/processed/opus11/filtered_pairs.txt'
+    data_file = settings.data.filtered_path
     with open(data_file) as handle:
         reader = csv.reader(handle)
         questions, answers = zip(*reader)
 
-    vocabulary_file = 'data/processed/opus11/vocabulary.txt'
+    vocabulary_file = settings.data.vocabulary_path
     with open(vocabulary_file) as handle:
         vocabulary = json.load(handle)
 
-    batch_size = 64
-    n_iter = 1024 # 16384
-    n_epoch = 2
+    batch_size = settings.train.batch_size
+    n_iter = settings.train.n_iter # 16384
+    n_epoch = settings.train.n_epoch
+    print ('Initializing training with configuration: {0}'.format(settings.train))
     iterator = BatchIterator(questions, answers, vocabulary, batch_size, sequence_length, one_hot_target=True)
     # generator = (iterator.next_batch() for _ in count(start=0, step=1)) # infinite generator
     # model.fit_generator(generator, epochs=2, steps_per_epoch=n_iter * batch_size)
@@ -44,4 +47,5 @@ if __name__ == '__main__':
             bar.set_description('loss: {0:.2f}'.format( float(loss)/i ))
             bar.refresh()
     
-    model.save_weights('models/seq2seq_weights.h5')
+    print ('Saving model to {0}'.format(settings.model.weights_path))
+    model.save_weights(settings.model.weights_path)

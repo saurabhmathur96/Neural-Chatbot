@@ -9,6 +9,7 @@ import re
 import sys
 sys.path.append('src/utils')
 from data_utils import augment
+from config_utils import settings
 
 
 def all_filenames(root):
@@ -21,15 +22,14 @@ def all_filenames(root):
                 yield subpath
 
 if __name__ == '__main__':
-    
-    os.makedirs('data/processed/') if not path.exists('data/processed/') else None
-    os.makedirs('data/processed/opus11') if not path.exists('data/processed/opus11') else None
 
-    pairs_path = 'data/processed/opus11/pairs.txt'
+    pairs_path = settings.data.pairs_path
 
     with open(pairs_path, 'w') as pairs_handle:
         writer = csv.writer(pairs_handle, quoting=csv.QUOTE_ALL)
-        names = list(all_filenames('data/raw/OpenSubtitles/en/'))
+        
+        base_path = path.join(settings.data.extract_dir, 'OpenSubtitles', 'en')
+        names = list(all_filenames(base_path))
         for filepath in tqdm(names):
             with gzip.open(filepath) as handle:
                 pipe = Popen(['perl', 'lib/wikifil.pl'], stdin=PIPE, stdout=PIPE)

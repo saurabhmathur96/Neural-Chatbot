@@ -9,16 +9,17 @@ from nltk import FreqDist
 
 sys.path.append('src/utils')
 from data_utils import PAD, START, END, UNK
+from config_utils import settings
 
 if __name__ == '__main__':
-    data_file = 'data/processed/opus11/pairs.txt'
+    data_file = settings.data.pairs_path
     print ('Reading {0}'.format(data_file))
     with open(data_file) as handle:
         reader = csv.reader(handle)
         pairs = [(question, answer) for question, answer in reader]
 
     print ('Building Frequency Distribution')
-    vocabulary_size = 2000 - 4 # pad, start, end, unk
+    vocabulary_size = settings.model.vocabulary_size - 4 # pad, start, end, unk
     words = ' '.join(chain.from_iterable(pairs)).split()
     print ('Total {0} words'.format(len(words)))
     freq_dist = FreqDist(words)
@@ -26,14 +27,15 @@ if __name__ == '__main__':
     word_counts = freq_dist.most_common(vocabulary_size)
     vocabulary = [word for word, count in word_counts]
 
-    length = 14
+    length = settings.model.sequence_length - 2 # start, end
     vocabulary_set = set(vocabulary)
     def remove_unknown(line):
         return ' '.join(word if word in vocabulary_set else UNK for word in line.split())
 
+    unk_ratio = settings.data.unk_ratio
     def is_valid(line):
         words = line.split()
-        return len(words) <= length and (words.count(UNK) / float(len(words))) < .2
+        return len(words) <= length and (words.count(UNK) / float(len(words))) < unk_ratio
     
     def mark_ends(line):
         return START + ' ' + line + ' ' + END
@@ -43,12 +45,12 @@ if __name__ == '__main__':
     
     vocabulary = [PAD, UNK, START, END] + vocabulary
     
-    vocabulary_file = 'data/processed/opus11/vocabulary.txt'
+    vocabulary_file = settings.data.vocabulary_path
     print ('Writing vocabulary to {0}'.format(vocabulary_file))
     with open(vocabulary_file, 'w') as handle:
         json.dump(vocabulary, handle)
 
-    filtered_file = 'data/processed/opus11/filtered_pairs.txt'
+    filtered_file = settings.data.filtered_path
     print ('Writing filtered pairs to {0}'.format(filtered_file))
     with open(filtered_file, 'w') as handle:
         writer = csv.writer(handle, quoting=csv.QUOTE_ALL)

@@ -2,14 +2,22 @@ from sampling import Sampler
 from models import seq2seq, seq2seq_attention
 import json
 
+
+import sys
+sys.path.append('src/utils')
+from config_utils import settings
+
 if __name__ == '__main__':
-    sequence_length = 16
-    vocabulary_size = 2000
-    hidden_size = 256
+    sequence_length = settings.model.sequence_length
+    vocabulary_size = settings.model.vocabulary_size
+    hidden_size = settings.model.hidden_size
+    print ('Creating model with configuration: {0}'.format(settings.model))
+
     model = seq2seq_attention(sequence_length, vocabulary_size, hidden_size)
+    print ('Loading model weights from {0}'.format(settings.model.weights_path))
     model.load_weights('models/seq2seq_weights.h5')
 
-    vocabulary_file = 'data/processed/opus11/vocabulary.txt'
+    vocabulary_file = settings.data.vocabulary_path
     with open(vocabulary_file, 'r') as handle:
         vocabulary = json.load(handle)
     
