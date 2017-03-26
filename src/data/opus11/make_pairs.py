@@ -31,23 +31,27 @@ if __name__ == '__main__':
         base_path = path.join(settings.data.extract_dir, 'OpenSubtitles', 'en')
         names = list(all_filenames(base_path))
         for filepath in tqdm(names):
-            with gzip.open(filepath) as handle:
-                pipe = Popen(['perl', 'lib/wikifil.pl'], stdin=PIPE, stdout=PIPE)
-                text, _ = pipe.communicate(handle.read())
-                lines = re.sub(r'([\.\?\!])[\.\?\! ]+', r'\1 ', text).strip().split('\n')
-                
+            try:
+                with gzip.open(filepath) as handle:
+                    pipe = Popen(['perl', 'lib/wikifil.pl'], stdin=PIPE, stdout=PIPE)
+                    text, _ = pipe.communicate(handle.read())
+                    lines = re.sub(r'([\.\?\!])[\.\?\! ]+', r'\1 ', text).strip().split('\n')
+                    
 
-                lines = [line.strip() for line in lines]
+                    lines = [line.strip() for line in lines]
 
-                
-                for question, answer in zip(lines[0::2], lines[1::2]):
-                    for q, a in augment([question, answer]):
-                        writer.writerow([q, a])
+                    
+                    for question, answer in zip(lines[0::2], lines[1::2]):
+                        for q, a in augment([question, answer]):
+                            writer.writerow([q, a])
 
 
-                for question, answer in zip(lines[1::2], lines[2::2]):
-                    for q, a in augment([question, answer]):
-                        writer.writerow([q, a])
+                    for question, answer in zip(lines[1::2], lines[2::2]):
+                        for q, a in augment([question, answer]):
+                            writer.writerow([q, a])
+                except IOError:
+                    pass
+                    # skip files that cause an error
 
 
 

@@ -8,7 +8,7 @@ def seq2seq(sequence_length, vocabulary_size, hidden_size, use_gru=True):
 
     # Input Block
     i = Input(shape=(sequence_length,))
-    x = Embedding(vocabulary_size, hidden_size, mask_zero=True)(i)
+    x = Embedding(vocabulary_size, 128, mask_zero=True)(i)
     
     # Encoder Block
     x = Encoder(hidden_size, return_sequences=False, use_gru=use_gru)(x)
@@ -37,7 +37,7 @@ def seq2seq_attention(sequence_length, vocabulary_size, hidden_size, use_gru=Tru
 
     # Input Block
     i = Input(shape=(sequence_length,))
-    x = Embedding(vocabulary_size, hidden_size, mask_zero=True)(i)
+    x = Embedding(vocabulary_size, 128, mask_zero=True)(i)
 
     # Encoder Block
     x = Encoder(hidden_size, return_sequences=True, bidirectional=True, use_gru=use_gru)(x)
