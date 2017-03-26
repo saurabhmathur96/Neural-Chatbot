@@ -49,9 +49,9 @@ if __name__ == '__main__':
                     for question, answer in zip(lines[1::2], lines[2::2]):
                         for q, a in augment([question, answer]):
                             writer.writerow([q, a])
-                except IOError:
-                    pass
-                    # skip files that cause an error
+            except IOError:
+                pass
+                # skip files that cause an error
 
 
 
