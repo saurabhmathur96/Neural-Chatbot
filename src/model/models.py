@@ -4,14 +4,14 @@ from keras.layers import *
 from sequence_blocks import *
 from keras.optimizers import *
 
-def seq2seq(sequence_length, vocabulary_size, hidden_size):
+def seq2seq(sequence_length, vocabulary_size, hidden_size, use_gru=True):
 
     # Input Block
     i = Input(shape=(sequence_length,))
     x = Embedding(vocabulary_size, hidden_size, mask_zero=True)(i)
     
     # Encoder Block
-    x = Encoder(hidden_size, return_sequences=False)(x)
+    x = Encoder(hidden_size, return_sequences=False, use_gru=use_gru)(x)
     x = Dropout(.5)(x)
     
     x = Dense(hidden_size, activation='linear')(x)
@@ -19,7 +19,7 @@ def seq2seq(sequence_length, vocabulary_size, hidden_size):
     x = RepeatVector(sequence_length)(x)
 
     # Decoder Block
-    x = Decoder(hidden_size, return_sequences=True)(x)
+    x = Decoder(hidden_size, return_sequences=True, use_gru=use_gru)(x)
     x = Dropout(.5)(x)
     
     x = TimeDistributed(Dense(vocabulary_size, activation='softmax'))(x)
@@ -33,14 +33,14 @@ def seq2seq(sequence_length, vocabulary_size, hidden_size):
 
 
 
-def seq2seq_attention(sequence_length, vocabulary_size, hidden_size):
+def seq2seq_attention(sequence_length, vocabulary_size, hidden_size, use_gru=True):
 
     # Input Block
     i = Input(shape=(sequence_length,))
     x = Embedding(vocabulary_size, hidden_size, mask_zero=True)(i)
 
     # Encoder Block
-    x = Encoder(hidden_size, return_sequences=True, bidirectional=True)(x)
+    x = Encoder(hidden_size, return_sequences=True, bidirectional=True, use_gru=use_gru)(x)
     x = Dropout(.5)(x)
 
     x = Dense(hidden_size, activation='linear')(x)
@@ -48,7 +48,7 @@ def seq2seq_attention(sequence_length, vocabulary_size, hidden_size):
     attention = Maxpool(x)
     
     # Decoder Block
-    x = AttentionDecoder(hidden_size, return_sequences=True, bidirectional=True)(x, attention)
+    x = AttentionDecoder(hidden_size, return_sequences=True, bidirectional=True, use_gru=use_gru)(x, attention)
     x = Dropout(.5)(x)
 
 

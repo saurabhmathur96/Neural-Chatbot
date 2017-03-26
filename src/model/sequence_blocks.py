@@ -8,6 +8,7 @@ from keras.layers import ELU
 from keras.initializers import Zeros
 from keras.layers.merge import concatenate
 
+
 class AttentionWrapper(Wrapper):
     def __init__(self, layer, attention_vec, attn_activation='tanh', single_attention_param=False, **kwargs):
         assert isinstance(layer, LSTM) or isinstance(layer, GRU)
@@ -16,7 +17,6 @@ class AttentionWrapper(Wrapper):
         self.attention_vec = attention_vec
         self.attn_activation = activations.get(attn_activation)
         self.single_attention_param = single_attention_param
-        
 
     def build(self, input_shape):
         assert len(input_shape) >= 3
@@ -31,24 +31,30 @@ class AttentionWrapper(Wrapper):
         if hasattr(self.attention_vec, '_keras_shape'):
             attention_dim = self.attention_vec._keras_shape[1]
         else:
-            raise Exception('Layer could not be build: No information about expected input shape.')
+            raise Exception(
+                'Layer could not be build: No information about expected input shape.')
 
-        
         kernel_initializer = self.layer.kernel_initializer
-        self.U_a = self.layer.add_weight((self.layer.units, self.layer.units), name='{}_U_a'.format(self.name), initializer=kernel_initializer)
-        self.b_a = self.layer.add_weight((self.layer.units,), name='{}_b_a'.format(self.name), initializer=Zeros())
+        self.U_a = self.layer.add_weight((self.layer.units, self.layer.units), name='{}_U_a'.format(
+            self.name), initializer=kernel_initializer)
+        self.b_a = self.layer.add_weight(
+            (self.layer.units,), name='{}_b_a'.format(self.name), initializer=Zeros())
 
-        self.U_m = self.layer.add_weight((attention_dim, self.layer.units), name='{}_U_m'.format(self.name), initializer=kernel_initializer)
-        self.b_m = self.layer.add_weight((self.layer.units,), name='{}_b_m'.format(self.name), initializer=Zeros())
+        self.U_m = self.layer.add_weight((attention_dim, self.layer.units), name='{}_U_m'.format(
+            self.name), initializer=kernel_initializer)
+        self.b_m = self.layer.add_weight(
+            (self.layer.units,), name='{}_b_m'.format(self.name), initializer=Zeros())
 
         if self.single_attention_param:
-            self.U_s = self.layer.add_weight((self.layer.units, 1), name='{}_U_s'.format(self.name), initializer=kernel_initializer)
-            self.b_s = self.layer.add_weight((1,), name='{}_b_s'.format(self.name), initializer=Zeros())
+            self.U_s = self.layer.add_weight((self.layer.units, 1), name='{}_U_s'.format(
+                self.name), initializer=kernel_initializer)
+            self.b_s = self.layer.add_weight(
+                (1,), name='{}_b_s'.format(self.name), initializer=Zeros())
         else:
-            self.U_s = self.layer.add_weight((self.layer.units, self.layer.units), name='{}_U_s'.format(self.name), initializer=kernel_initializer)
-            self.b_s = self.layer.add_weight((self.layer.units,), name='{}_b_s'.format(self.name), initializer=Zeros())
-        
-        
+            self.U_s = self.layer.add_weight((self.layer.units, self.layer.units), name='{}_U_s'.format(
+                self.name), initializer=kernel_initializer)
+            self.b_s = self.layer.add_weight(
+                (self.layer.units,), name='{}_b_s'.format(self.name), initializer=Zeros())
 
     def compute_output_shape(self, input_shape):
         return self.layer.compute_output_shape(input_shape)
@@ -115,41 +121,91 @@ class AttentionWrapper(Wrapper):
             return last_output
 
 
-Maxpool = Lambda(lambda x: K.max(x, axis=1, keepdims=False), output_shape=lambda x: (x[0], x[2]))
+Maxpool = Lambda(lambda x: K.max(x, axis=1, keepdims=False),
+                 output_shape=lambda x: (x[0], x[2]))
 Maxpool.supports_masking = True
 
-def Encoder(hidden_size, return_sequences=True, bidirectional=False):
-    def _encoder(x):
-        if bidirectional:
-            branch_1 = GRU(hidden_size, activation='linear', return_sequences=return_sequences, go_backwards=False)(x)
-            branch_2 = GRU(hidden_size, activation='linear', return_sequences=return_sequences, go_backwards=True)(x)
-            x = concatenate([branch_1, branch_2])
-            return ELU()(x)
-        else:
-            x = GRU(hidden_size, activation='relu', return_sequences=return_sequences, go_backwards=False)(x)
-            return ELU()(x)
+
+def Encoder(hidden_size, return_sequences=True, bidirectional=False, use_gru=True):
+    if use_gru:
+        def _encoder(x):
+            if bidirectional:
+                branch_1 = GRU(hidden_size, activation='linear',
+                               return_sequences=return_sequences, go_backwards=False)(x)
+                branch_2 = GRU(hidden_size, activation='linear',
+                               return_sequences=return_sequences, go_backwards=True)(x)
+                x = concatenate([branch_1, branch_2])
+                return ELU()(x)
+            else:
+                x = GRU(hidden_size, activation='relu',
+                        return_sequences=return_sequences)(x)
+                return ELU()(x)
+    else:
+        def _encoder(x):
+            if bidirectional:
+                branch_1 = LSTM(hidden_size, activation='tanh',
+                                return_sequences=return_sequences, go_backwards=False)(x)
+                branch_2 = LSTM(hidden_size, activation='tanh',
+                                return_sequences=return_sequences, go_backwards=True)(x)
+            else:
+                x = LSTM(hidden_size, activation='tanh',
+                         return_sequences=return_sequences)(x)
+                return x
     return _encoder
 
-def AttentionDecoder(hidden_size, return_sequences=True, bidirectional=False):
-    def _decoder(x, attention):
-        if bidirectional:
-            branch_1 = AttentionWrapper(GRU(hidden_size, activation='linear', return_sequences=return_sequences, go_backwards=False), attention, single_attention_param=True)(x)
-            branch_2 = AttentionWrapper(GRU(hidden_size, activation='linear', return_sequences=return_sequences, go_backwards=True), attention, single_attention_param=True)(x)
-            x = concatenate([branch_1, branch_2])
-            return ELU()(x)
-        else:
-            x = AttentionWrapper(GRU(hidden_size, activation='linear', return_sequences=return_sequences, go_backwards=False), attention, single_attention_param=True)(x)
-            return ELU()(x)
+
+def AttentionDecoder(hidden_size, return_sequences=True, bidirectional=False, use_gru=True):
+    if use_gru:
+        def _decoder(x, attention):
+            if bidirectional:
+                branch_1 = AttentionWrapper(GRU(hidden_size, activation='linear', return_sequences=return_sequences,
+                                                go_backwards=False), attention, single_attention_param=True)(x)
+                branch_2 = AttentionWrapper(GRU(hidden_size, activation='linear', return_sequences=return_sequences,
+                                                go_backwards=True), attention, single_attention_param=True)(x)
+                x = concatenate([branch_1, branch_2])
+                return ELU()(x)
+            else:
+                x = AttentionWrapper(GRU(hidden_size, activation='linear',
+                                         return_sequences=return_sequences), attention, single_attention_param=True)(x)
+                return ELU()(x)
+    else:
+        def _decoder(x, attention):
+            if bidirectional:
+                branch_1 = AttentionWrapper(LSTM(hidden_size, activation='tanh', return_sequences=return_sequences,
+                                                 go_backwards=False), attention, single_attention_param=True)(x)
+                branch_2 = AttentionWrapper(GRU(hidden_size, activation='tanh', return_sequences=return_sequences,
+                                                go_backwards=True), attention, single_attention_param=True)(x)
+                x = concatenate([branch_1, branch_2])
+                return x
+            else:
+                x = AttentionWrapper(LSTM(hidden_size, activation='tanh', return_sequences=return_sequences),
+                                     attention, single_attention_param=True)(x)
+                return x
+
     return _decoder
 
-def Decoder(hidden_size, return_sequences=True, bidirectional=False):
-    def _decoder(x):
-        if bidirectional:
-            x = Bidirectional(GRU(hidden_size, activation='linear', return_sequences=True))(x)
-            x = ELU()(x)
-            return x
-        else:
-            x = GRU(hidden_size, activation='linear', return_sequences=True)(x)
-            x = ELU()(x)
-            return x
+
+def Decoder(hidden_size, return_sequences=True, bidirectional=False, use_gru=True):
+    if use_gru:
+        def _decoder(x):
+            if bidirectional:
+                x = Bidirectional(
+                    GRU(hidden_size, activation='linear', return_sequences=True))(x)
+                x = ELU()(x)
+                return x
+            else:
+                x = GRU(hidden_size, activation='linear',
+                        return_sequences=True)(x)
+                x = ELU()(x)
+                return x
+    else:
+        def _decoder(x):
+            if bidirectional:
+                x = Bidirectional(
+                    LSTM(hidden_size, activation='tanh', return_sequences=True))(x)
+                return x
+            else:
+                x = LSTM(hidden_size, activation='tanh',
+                         return_sequences=True)(x)
+                return x
     return _decoder

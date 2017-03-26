@@ -10,7 +10,7 @@ from config_utils import settings
 if __name__ == '__main__':
     
     url = 'http://opus.lingfil.uu.se/download.php?f=OpenSubtitles/en.tar.gz'
-    save_path = setting.data.save_path
+    save_path = settings.data.save_path
     download(url, save_path)
 
     extract_dir = settings.data.extract_dir
