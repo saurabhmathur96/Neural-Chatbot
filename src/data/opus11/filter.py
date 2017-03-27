@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
         print ('Building Frequency Distribution')
         vocabulary_size = settings.model.vocabulary_size - 4 # pad, start, end, unk
-        freq_dist = FreqDist(chain.from_iterable(q.split() + a.split() for q, a in pairs))
+        freq_dist = FreqDist(chain.from_iterable(q.split() + a.split() for q, a in tqdm(pairs, total=3102698) ))
 
         print ('Total {0} unique words'.format(len(freq_dist)))
         word_counts = freq_dist.most_common(vocabulary_size)
@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     with open(data_file) as handle:
         reader = csv.reader(handle)
-        pairs = ((question, answer) for question, answer in reader)
+        pairs = ((question, answer) for question, answer in reader if not any(w in question for w in blacklist) and not any(w in answer for w in blacklist))
         
         pairs = (map(remove_unknown, pair) for pair in tqdm(pairs, desc='removing rare words'))
         pairs = (map(mark_ends, (question, answer)) for question, answer in tqdm(pairs, desc='filtering lines') if is_valid(question) and is_valid(answer))
