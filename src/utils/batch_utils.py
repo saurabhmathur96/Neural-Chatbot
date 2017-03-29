@@ -25,8 +25,8 @@ class BatchIterator(object):
     def next_batch(self):
         inverse_vocabulary = self.inverse_vocabulary
         if self.stream:
-            q = [[inverse_vocabulary[word] for word in next(self.questions).strip().split() ] for i in range(len(batch_size))]
-            a = [[inverse_vocabulary[word] for word in next(self.answers).strip().split() ] for i in range(len(batch_size))]
+            q = [[inverse_vocabulary[word] for word in next(self.questions).strip().split() ] for i in range(len(self.batch_size))]
+            a = [[inverse_vocabulary[word] for word in next(self.answers).strip().split() ] for i in range(len(self.batch_size))]
         else:
             n_example = len(self.answers)
             indices = random.randint(0, n_example, size=(self.batch_size))
