@@ -153,6 +153,7 @@ def Encoder(hidden_size, activation=None, return_sequences=True, bidirectional=F
                                 return_sequences=return_sequences, go_backwards=True)(x)
                 x = concatenate([branch_1, branch_2])
                 x = activation(x)
+                return x
             else:
                 x = LSTM(hidden_size, activation='linear',
                          return_sequences=return_sequences)(x)
@@ -176,7 +177,8 @@ def AttentionDecoder(hidden_size, activation=None, return_sequences=True, bidire
             else:
                 x = AttentionWrapper(GRU(hidden_size, activation='linear',
                                          return_sequences=return_sequences), attention, single_attention_param=True)(x)
-                return activation(x)
+                x = activation(x)
+                return x
     else:
         def _decoder(x, attention):
             if bidirectional:
