@@ -39,16 +39,18 @@ def seq2seq(sequence_length, vocabulary_size, hidden_size, use_gru=True):
 
 def seq2seq_attention(sequence_length, vocabulary_size, hidden_size, use_elu=True, use_gru=True, bidirectional_decoder=True):
 
-    activation = ELU if use_elu else Activation('tanh')
+    
     # Input Block
     i = Input(shape=(sequence_length,))
     x = Embedding(vocabulary_size, 128, mask_zero=True)(i)
 
     
     # Encoder Block
-    x = Encoder(hidden_size, activation=activation(), return_sequences=True, bidirectional=True, use_gru=use_gru)(x)
+    activation = ELU() if use_elu else Activation('tanh')
+    x = Encoder(hidden_size, activation=activation, return_sequences=True, bidirectional=True, use_gru=use_gru)(x)
     x = Dropout(.5)(x)
-    x = Encoder(hidden_size, activation=activation(), return_sequences=True, bidirectional=True, use_gru=use_gru)(x)
+    activation = ELU() if use_elu else Activation('tanh')
+    x = Encoder(hidden_size, activation=activation, return_sequences=True, bidirectional=True, use_gru=use_gru)(x)
     x = Dropout(.5)(x)
 
     x = TimeDistributed(Dense(hidden_size, activation='linear'))(x)
@@ -56,9 +58,11 @@ def seq2seq_attention(sequence_length, vocabulary_size, hidden_size, use_elu=Tru
     attention = Maxpool(x)
     
     # Decoder Block
-    x = AttentionDecoder(hidden_size, activation=activation(), return_sequences=True, bidirectional=bidirectional_decoder, use_gru=use_gru)(x, attention)
+    activation = ELU() if use_elu else Activation('tanh')
+    x = AttentionDecoder(hidden_size, activation=activation, return_sequences=True, bidirectional=bidirectional_decoder, use_gru=use_gru)(x, attention)
     x = Dropout(.5)(x)
-    x = AttentionDecoder(hidden_size, activation=activation(), return_sequences=True, bidirectional=bidirectional_decoder, use_gru=use_gru)(x, attention)
+    activation = ELU() if use_elu else Activation('tanh')
+    x = AttentionDecoder(hidden_size, activation=activation, return_sequences=True, bidirectional=bidirectional_decoder, use_gru=use_gru)(x, attention)
     x = Dropout(.5)(x)
 
 
