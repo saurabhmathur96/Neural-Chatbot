@@ -12,11 +12,11 @@ class BatchIterator(object):
         self.one_hot_target = one_hot_target
 
         inverse_vocabulary = dict((word, i) for i, word in enumerate(self.vocabulary))
-        q = [[inverse_vocabulary[word] for word in question.split()] for question in questions]
-        a = [[inverse_vocabulary[word] for word in answer.split()] for answer in answers]
+        q = ([inverse_vocabulary[word] for word in question.split()] for question in questions)
+        a = ([inverse_vocabulary[word] for word in answer.split()] for answer in answers)
         
-        self.X = pad_sequences(q, maxlen=self.sequence_length, dtype=int)
-        self.y = pad_sequences(a, maxlen=self.sequence_length, dtype=int)
+        self.X = pad_sequences(q, maxlen=self.sequence_length)
+        self.y = pad_sequences(a, maxlen=self.sequence_length)
 
     
     def to_one_hot(self, y):
