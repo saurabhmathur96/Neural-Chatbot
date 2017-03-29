@@ -126,7 +126,9 @@ Maxpool = Lambda(lambda x: K.max(x, axis=1, keepdims=False),
 Maxpool.supports_masking = True
 
 
-def Encoder(hidden_size, return_sequences=True, bidirectional=False, use_gru=True):
+def Encoder(hidden_size, activation=None, return_sequences=True, bidirectional=False, use_gru=True):
+    if activation is None:
+        activation = ELU()
     if use_gru:
         def _encoder(x):
             if bidirectional:
@@ -135,26 +137,33 @@ def Encoder(hidden_size, return_sequences=True, bidirectional=False, use_gru=Tru
                 branch_2 = GRU(hidden_size, activation='linear',
                                return_sequences=return_sequences, go_backwards=True)(x)
                 x = concatenate([branch_1, branch_2])
-                return ELU()(x)
+                x = activation(x)
+                return x
             else:
-                x = GRU(hidden_size, activation='relu',
+                x = GRU(hidden_size, activation='linear',
                         return_sequences=return_sequences)(x)
-                return ELU()(x)
+                x = activation(x)
+                return x
     else:
         def _encoder(x):
             if bidirectional:
-                branch_1 = LSTM(hidden_size, activation='tanh',
+                branch_1 = LSTM(hidden_size, activation='linear',
                                 return_sequences=return_sequences, go_backwards=False)(x)
-                branch_2 = LSTM(hidden_size, activation='tanh',
+                branch_2 = LSTM(hidden_size, activation='linear',
                                 return_sequences=return_sequences, go_backwards=True)(x)
+                x = concatenate([branch_1, branch_2])
+                x = activation(x)
             else:
-                x = LSTM(hidden_size, activation='tanh',
+                x = LSTM(hidden_size, activation='linear',
                          return_sequences=return_sequences)(x)
+                x = activation(x)
                 return x
     return _encoder
 
 
-def AttentionDecoder(hidden_size, return_sequences=True, bidirectional=False, use_gru=True):
+def AttentionDecoder(hidden_size, activation=None, return_sequences=True, bidirectional=False, use_gru=True):
+    if activation is None:
+        activation = ELU()
     if use_gru:
         def _decoder(x, attention):
             if bidirectional:
@@ -163,49 +172,55 @@ def AttentionDecoder(hidden_size, return_sequences=True, bidirectional=False, us
                 branch_2 = AttentionWrapper(GRU(hidden_size, activation='linear', return_sequences=return_sequences,
                                                 go_backwards=True), attention, single_attention_param=True)(x)
                 x = concatenate([branch_1, branch_2])
-                return ELU()(x)
+                return activation(x)
             else:
                 x = AttentionWrapper(GRU(hidden_size, activation='linear',
                                          return_sequences=return_sequences), attention, single_attention_param=True)(x)
-                return ELU()(x)
+                return activation(x)
     else:
         def _decoder(x, attention):
             if bidirectional:
-                branch_1 = AttentionWrapper(LSTM(hidden_size, activation='tanh', return_sequences=return_sequences,
+                branch_1 = AttentionWrapper(LSTM(hidden_size, activation='linear', return_sequences=return_sequences,
                                                  go_backwards=False), attention, single_attention_param=True)(x)
-                branch_2 = AttentionWrapper(GRU(hidden_size, activation='tanh', return_sequences=return_sequences,
+                branch_2 = AttentionWrapper(GRU(hidden_size, activation='linear', return_sequences=return_sequences,
                                                 go_backwards=True), attention, single_attention_param=True)(x)
                 x = concatenate([branch_1, branch_2])
+                x = activation(x)
                 return x
             else:
-                x = AttentionWrapper(LSTM(hidden_size, activation='tanh', return_sequences=return_sequences),
+                x = AttentionWrapper(LSTM(hidden_size, activation='linear', return_sequences=return_sequences),
                                      attention, single_attention_param=True)(x)
+                x = activation(x)
                 return x
 
     return _decoder
 
 
-def Decoder(hidden_size, return_sequences=True, bidirectional=False, use_gru=True):
+def Decoder(hidden_size, activation=None, return_sequences=True, bidirectional=False, use_gru=True):
+    if activation is None:
+        activation = ELU()
     if use_gru:
         def _decoder(x):
             if bidirectional:
                 x = Bidirectional(
                     GRU(hidden_size, activation='linear', return_sequences=True))(x)
-                x = ELU()(x)
+                x = activation(x)
                 return x
             else:
                 x = GRU(hidden_size, activation='linear',
                         return_sequences=True)(x)
-                x = ELU()(x)
+                x = activation(x)
                 return x
     else:
         def _decoder(x):
             if bidirectional:
                 x = Bidirectional(
-                    LSTM(hidden_size, activation='tanh', return_sequences=True))(x)
+                    LSTM(hidden_size, activation='linear', return_sequences=True))(x)
+                x = activation(x)
                 return x
             else:
-                x = LSTM(hidden_size, activation='tanh',
+                x = LSTM(hidden_size, activation='linear',
                          return_sequences=True)(x)
+                x = activation(x)
                 return x
     return _decoder
