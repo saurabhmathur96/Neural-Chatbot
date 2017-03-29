@@ -22,7 +22,7 @@ class BatchIterator(object):
         return out
 
     def next_batch(self):
-        n_example = self.X.shape[0]
+        n_example = len(self.answers)
         indices = random.randint(0, n_example, size=(self.batch_size))
         inverse_vocabulary = self.inverse_vocabulary
         q = [[inverse_vocabulary[word] for word in self.questions[i].split()] for i in indices]
