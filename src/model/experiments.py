@@ -33,9 +33,9 @@ if __name__ == '__main__':
 
     for experiment_no in [0, 1, 2, 3]:    
         data_file = settings.data.filtered_path
-        q_stream = questions_stream(data_file)
-        a_stream = answers_stream(data_file)
-        
+        questions = questions_stream(data_file)
+        answers = answers_stream(data_file)
+
         sequence_length = settings.model.sequence_length
         vocabulary_size = settings.model.vocabulary_size
         hidden_size = settings.model.hidden_size
