@@ -11,6 +11,18 @@ from batch_utils import BatchIterator
 from config_utils import settings
 
 if __name__ == '__main__':
+    data_file = settings.data.filtered_path
+    with open(data_file) as handle:
+        reader = csv.reader(handle)
+        questions, answers = zip(*reader)
+
+    vocabulary_file = settings.data.vocabulary_path
+    with open(vocabulary_file) as handle:
+        vocabulary = json.load(handle)
+
+    batch_size = settings.train.batch_size
+    n_iter = settings.train.n_iter # 16384
+    n_epoch = settings.train.n_epoch
 
     for experiment_no in [0, 1, 2, 3]:    
         sequence_length = settings.model.sequence_length
@@ -31,19 +43,6 @@ if __name__ == '__main__':
         
         print (model.summary())
         
-
-        data_file = settings.data.filtered_path
-        with open(data_file) as handle:
-            reader = csv.reader(handle)
-            questions, answers = zip(*reader)
-
-        vocabulary_file = settings.data.vocabulary_path
-        with open(vocabulary_file) as handle:
-            vocabulary = json.load(handle)
-
-        batch_size = settings.train.batch_size
-        n_iter = settings.train.n_iter # 16384
-        n_epoch = settings.train.n_epoch
         print ('Initializing training with configuration: {0}'.format(settings.train))
         iterator = BatchIterator(questions, answers, vocabulary, batch_size, sequence_length, one_hot_target=True)
         # generator = (iterator.next_batch() for _ in count(start=0, step=1)) # infinite generator
