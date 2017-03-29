@@ -10,12 +10,19 @@ sys.path.append('src/utils')
 from batch_utils import BatchIterator
 from config_utils import settings
 
-if __name__ == '__main__':
-    data_file = settings.data.filtered_path
-    with open(data_file) as handle:
-        reader = csv.reader(handle)
-        questions, answers = zip(*reader)
+def questions_stream(filepath):
+    while True:
+        with open(filepath) as handle:
+            reader = csv.reader(handle)
+            yield next(reader)[0]
 
+def answers_stream(filepath):
+    while True:
+        with open(filepath) as handle:
+            reader = csv.reader(handle)
+            yield next(reader)[1]
+
+if __name__ == '__main__':
     vocabulary_file = settings.data.vocabulary_path
     with open(vocabulary_file) as handle:
         vocabulary = json.load(handle)
@@ -25,6 +32,10 @@ if __name__ == '__main__':
     n_epoch = settings.train.n_epoch
 
     for experiment_no in [0, 1, 2, 3]:    
+        data_file = settings.data.filtered_path
+        q_stream = questions_stream(data_file)
+        a_stream = answers_stream(data_file)
+        
         sequence_length = settings.model.sequence_length
         vocabulary_size = settings.model.vocabulary_size
         hidden_size = settings.model.hidden_size
@@ -44,7 +55,7 @@ if __name__ == '__main__':
         print (model.summary())
         
         print ('Initializing training with configuration: {0}'.format(settings.train))
-        iterator = BatchIterator(questions, answers, vocabulary, batch_size, sequence_length, one_hot_target=True)
+        iterator = BatchIterator(questions, answers, vocabulary, batch_size, sequence_length, one_hot_target=True, stream=True)
         # generator = (iterator.next_batch() for _ in count(start=0, step=1)) # infinite generator
         # model.fit_generator(generator, epochs=2, steps_per_epoch=n_iter * batch_size)
         # 
