@@ -32,7 +32,7 @@ class BatchIterator(object):
         y = pad_sequences(a, maxlen=self.sequence_length)
 
         if self.one_hot_target:
-            return (X, self.to_one_hot(y[indices]))
+            return (X, self.to_one_hot(y))
         else:
             return (X, y)
 
