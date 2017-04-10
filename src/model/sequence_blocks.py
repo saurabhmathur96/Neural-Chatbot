@@ -132,9 +132,9 @@ def Encoder(hidden_size, activation=None, return_sequences=True, bidirectional=F
     if use_gru:
         def _encoder(x):
             if bidirectional:
-                branch_1 = GRU(hidden_size, activation='linear',
+                branch_1 = GRU(int(hidden_size/2), activation='linear',
                                return_sequences=return_sequences, go_backwards=False)(x)
-                branch_2 = GRU(hidden_size, activation='linear',
+                branch_2 = GRU(int(hidden_size/2), activation='linear',
                                return_sequences=return_sequences, go_backwards=True)(x)
                 x = concatenate([branch_1, branch_2])
                 x = activation(x)
@@ -147,9 +147,9 @@ def Encoder(hidden_size, activation=None, return_sequences=True, bidirectional=F
     else:
         def _encoder(x):
             if bidirectional:
-                branch_1 = LSTM(hidden_size, activation='linear',
+                branch_1 = LSTM(int(hidden_size/2), activation='linear',
                                 return_sequences=return_sequences, go_backwards=False)(x)
-                branch_2 = LSTM(hidden_size, activation='linear',
+                branch_2 = LSTM(int(hidden_size/2), activation='linear',
                                 return_sequences=return_sequences, go_backwards=True)(x)
                 x = concatenate([branch_1, branch_2])
                 x = activation(x)
@@ -168,9 +168,9 @@ def AttentionDecoder(hidden_size, activation=None, return_sequences=True, bidire
     if use_gru:
         def _decoder(x, attention):
             if bidirectional:
-                branch_1 = AttentionWrapper(GRU(hidden_size, activation='linear', return_sequences=return_sequences,
+                branch_1 = AttentionWrapper(GRU(int(hidden_size/2), activation='linear', return_sequences=return_sequences,
                                                 go_backwards=False), attention, single_attention_param=True)(x)
-                branch_2 = AttentionWrapper(GRU(hidden_size, activation='linear', return_sequences=return_sequences,
+                branch_2 = AttentionWrapper(GRU(int(hidden_size/2), activation='linear', return_sequences=return_sequences,
                                                 go_backwards=True), attention, single_attention_param=True)(x)
                 x = concatenate([branch_1, branch_2])
                 return activation(x)
@@ -182,9 +182,9 @@ def AttentionDecoder(hidden_size, activation=None, return_sequences=True, bidire
     else:
         def _decoder(x, attention):
             if bidirectional:
-                branch_1 = AttentionWrapper(LSTM(hidden_size, activation='linear', return_sequences=return_sequences,
+                branch_1 = AttentionWrapper(LSTM(int(hidden_size/2), activation='linear', return_sequences=return_sequences,
                                                  go_backwards=False), attention, single_attention_param=True)(x)
-                branch_2 = AttentionWrapper(GRU(hidden_size, activation='linear', return_sequences=return_sequences,
+                branch_2 = AttentionWrapper(LSTM(hidden_size, activation='linear', return_sequences=return_sequences,
                                                 go_backwards=True), attention, single_attention_param=True)(x)
                 x = concatenate([branch_1, branch_2])
                 x = activation(x)
@@ -205,24 +205,24 @@ def Decoder(hidden_size, activation=None, return_sequences=True, bidirectional=F
         def _decoder(x):
             if bidirectional:
                 x = Bidirectional(
-                    GRU(hidden_size, activation='linear', return_sequences=True))(x)
+                    GRU(int(hidden_size/2), activation='linear', return_sequences=return_sequences))(x)
                 x = activation(x)
                 return x
             else:
                 x = GRU(hidden_size, activation='linear',
-                        return_sequences=True)(x)
+                        return_sequences=return_sequences)(x)
                 x = activation(x)
                 return x
     else:
         def _decoder(x):
             if bidirectional:
                 x = Bidirectional(
-                    LSTM(hidden_size, activation='linear', return_sequences=True))(x)
+                    LSTM(int(hidden_size/2), activation='linear', return_sequences=return_sequences))(x)
                 x = activation(x)
                 return x
             else:
                 x = LSTM(hidden_size, activation='linear',
-                         return_sequences=True)(x)
+                         return_sequences=return_sequences)(x)
                 x = activation(x)
                 return x
     return _decoder
