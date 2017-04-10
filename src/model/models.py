@@ -49,9 +49,6 @@ def seq2seq_attention(sequence_length, vocabulary_size, hidden_size, use_elu=Tru
     activation = ELU() if use_elu else Activation('tanh')
     x = Encoder(hidden_size, activation=activation, return_sequences=True, bidirectional=True, use_gru=use_gru)(x)
     x = Dropout(.5)(x)
-    activation = ELU() if use_elu else Activation('tanh')
-    x = Encoder(hidden_size, activation=activation, return_sequences=True, bidirectional=True, use_gru=use_gru)(x)
-    x = Dropout(.5)(x)
 
     x = TimeDistributed(Dense(hidden_size, activation='linear'))(x)
     x = ELU()(x)
