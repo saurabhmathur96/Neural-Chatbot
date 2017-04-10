@@ -56,11 +56,9 @@ def seq2seq_attention(sequence_length, vocabulary_size, hidden_size, use_elu=Tru
     x = TimeDistributed(Dense(hidden_size, activation='linear'))(x)
     x = ELU()(x)
     attention = Maxpool(x)
+    x = Dropout(.5)(x)
     
     # Decoder Block
-    activation = ELU() if use_elu else Activation('tanh')
-    x = AttentionDecoder(hidden_size, activation=activation, return_sequences=True, bidirectional=bidirectional_decoder, use_gru=use_gru)(x, attention)
-    x = Dropout(.5)(x)
     activation = ELU() if use_elu else Activation('tanh')
     x = AttentionDecoder(hidden_size, activation=activation, return_sequences=True, bidirectional=bidirectional_decoder, use_gru=use_gru)(x, attention)
     x = Dropout(.5)(x)
